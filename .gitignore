@@ -1,0 +1,18 @@
+# Binaries
+ebpf-ciphertrace
+*.o
+
+# Toolchain and External Dependencies
+clang+llvm-14.0.0-x86_64-linux-gnu-ubuntu-18.04/
+clang+llvm-14.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
+libbpf/
+
+# Temporary Scripts and Notes
+offset_notes.c
+check_sym.go
+check_sym
+
+# IDE/Editor
+.vscode/
+.idea/
+*.swp

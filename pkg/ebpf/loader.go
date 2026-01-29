@@ -2,6 +2,7 @@ package ebpf
 
 import (
 	"fmt"
+
 	"github.com/cilium/ebpf"
 
 	"github.com/cilium/ebpf/rlimit"
@@ -16,7 +17,7 @@ type CipherTraceObjects struct {
 }
 
 type CipherTracePrograms struct {
-	UprobeSslDoHandshake *ebpf.Program `ebpf:"uprobe_ssl_do_handshake"`
+	UretprobeSslCipherGetName *ebpf.Program `ebpf:"uretprobe_ssl_cipher_get_name"`
 }
 
 type CipherTraceMaps struct {
@@ -33,16 +34,16 @@ func LoadCipherTraceObjects() (*CipherTraceObjects, error) {
 		return nil, fmt.Errorf("failed to remove memlock limit: %v", err)
 	}
 
-	// Placeholder: In reality, load the ELF file here.
-	// collectionSpec, err := ebpf.LoadCollectionSpec("bpf_ciphertrace.o")
-	
-	// Returning empty objects for boilerplate compilation
-	return &CipherTraceObjects{
-		CipherTracePrograms: CipherTracePrograms{
-			// UprobeSslDoHandshake: ...,
-		},
-		CipherTraceMaps: CipherTraceMaps{
-			// Events: ...,
-		},
-	}, nil
+	// Load the ELF file
+	spec, err := ebpf.LoadCollectionSpec("bpf_ciphertrace.o")
+	if err != nil {
+		return nil, fmt.Errorf("loading spec: %v", err)
+	}
+
+	var objs CipherTraceObjects
+	if err := spec.LoadAndAssign(&objs, nil); err != nil {
+		return nil, fmt.Errorf("loading objects: %v", err)
+	}
+
+	return &objs, nil
 }

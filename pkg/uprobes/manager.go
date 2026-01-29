@@ -2,6 +2,7 @@ package uprobes
 
 import (
 	"fmt"
+
 	"github.com/cilium/ebpf"
 	"github.com/cilium/ebpf/link"
 )
@@ -16,9 +17,8 @@ func NewManager() *Manager {
 	}
 }
 
-func (m *Manager) AttachSSLHandshake(prog *ebpf.Program, binaryPath string) error {
-	// Placeholder for symbol lookup
-	symbol := "SSL_do_handshake"
+func (m *Manager) AttachSSLCipherName(uretprobeProg *ebpf.Program, binaryPath string) error {
+	symbol := "SSL_CIPHER_get_name"
 
 	// Open executable
 	ex, err := link.OpenExecutable(binaryPath)
@@ -26,13 +26,13 @@ func (m *Manager) AttachSSLHandshake(prog *ebpf.Program, binaryPath string) erro
 		return fmt.Errorf("failed to open executable: %w", err)
 	}
 
-	// Attach Uprobe
-	l, err := ex.Uprobe(symbol, prog, nil)
+	// Attach Uretprobe
+	lRet, err := ex.Uretprobe(symbol, uretprobeProg, nil)
 	if err != nil {
-		return fmt.Errorf("failed to attach uprobe: %w", err)
+		return fmt.Errorf("failed to attach uretprobe: %w", err)
 	}
+	m.links = append(m.links, lRet)
 
-	m.links = append(m.links, l)
 	return nil
 }
 
