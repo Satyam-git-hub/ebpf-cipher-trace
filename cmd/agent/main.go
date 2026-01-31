@@ -13,7 +13,7 @@ import (
 	"vbpf-cipher-trace/pkg/ebpf"
 	"vbpf-cipher-trace/pkg/uprobes"
 
-	"github.com/cilium/ebpf/perf"
+	"github.com/cilium/ebpf/ringbuf"
 )
 
 // Event must match the C struct event_t
@@ -40,15 +40,15 @@ func main() {
 
 	// 3. Attach Uprobes
 	libSSLPath := "/lib/x86_64-linux-gnu/libssl.so.3"
-	if err := upManager.AttachSSLCipherName(objs.UretprobeSslCipherGetName, libSSLPath); err != nil {
+	if err := upManager.AttachSSLCipherName(objs.UretprobeSslCipherGetName(), libSSLPath); err != nil {
 		log.Printf("Failed to attach probes: %v", err)
 	}
 
 	// 4. Listen for events
-	// Open a perf event reader from the 'Events' map
-	rd, err := perf.NewReader(objs.Events, os.Getpagesize())
+	// Open a ring buffer reader from the 'Events' map
+	rd, err := ringbuf.NewReader(objs.Events())
 	if err != nil {
-		log.Fatalf("Creating perf event reader: %s", err)
+		log.Fatalf("Creating ring buffer reader: %s", err)
 	}
 	defer rd.Close()
 
@@ -57,22 +57,17 @@ func main() {
 		for {
 			record, err := rd.Read()
 			if err != nil {
-				if errors.Is(err, perf.ErrClosed) {
+				if errors.Is(err, ringbuf.ErrClosed) {
 					return
 				}
-				log.Printf("Read from perf reader failed: %s", err)
-				continue
-			}
-
-			if record.LostSamples != 0 {
-				log.Printf("perf ring buffer full, dropped %d samples", record.LostSamples)
+				log.Printf("Read from ring buffer failed: %s", err)
 				continue
 			}
 
 			// Unmarshal the raw binary data into the Event struct
 			var event Event
 			if err := binary.Read(bytes.NewReader(record.RawSample), binary.LittleEndian, &event); err != nil {
-				log.Printf("parsing perf event: %s", err)
+				log.Printf("parsing ring buffer event: %s", err)
 				continue
 			}
 
