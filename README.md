@@ -39,9 +39,40 @@ For a detailed deep dive, read the blog post: [eBPF CipherTrace: Cryptographic V
 
 ## Running
 
+### 1. Start the Agent
 ```bash
 sudo ./ebpf-ciphertrace
 ```
+
+### 2. Run Test Clients
+
+You can test the tracing against different clients included in this repository.
+
+#### Go Client (Crypto/TLS)
+This client uses the Go standard library (not OpenSSL) and prioritizes **Kyber** (Quantum-Safe) key exchange.
+```bash
+cd go-crypto-tls-client
+go run main.go
+```
+
+#### Java Client
+This client uses the JVM's SSL stack.
+```bash
+cd java-https-client
+javac HttpsPing.java
+java HttpsPing
+```
+
+#### Curl
+```bash
+curl https://google.com
+```
+
+## Results Output
+
+The agent successfully traces the TLS Handshake and identifies the negotiated Cipher Suite. It also uses heuristics to detect Post-Quantum (PQC) Key Exchanges based on the handshake size.
+
+![Results Output](assets/result_output.png)
 
 ## Disclaimer
 

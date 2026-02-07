@@ -7,16 +7,36 @@ import (
 	"github.com/cilium/ebpf/rlimit"
 )
 
-//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -cc clang -cflags "-O2 -g -Wall" -target amd64 bpf ../../bpf/ciphertrace.c -- -I../../internal/bpf
+//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -cc clang -cflags "-O2 -g -Wall" -no-strip -target amd64 bpf ../../bpf/ciphertrace.c -- -I../../internal/bpf
 
 // CipherTraceObjects wraps the generated bpfObjects for external use.
 type CipherTraceObjects struct {
 	objs *bpfObjects
 }
 
-// UretprobeSslCipherGetName returns the uprobe program for SSL_CIPHER_get_name.
-func (o *CipherTraceObjects) UretprobeSslCipherGetName() *ebpf.Program {
-	return o.objs.GetName
+// KprobeSendto returns the kprobe program for sys_sendto.
+func (o *CipherTraceObjects) KprobeSendto() *ebpf.Program {
+	return o.objs.KprobeSendto
+}
+
+// KprobeRecvfrom returns the kprobe program for sys_recvfrom.
+func (o *CipherTraceObjects) KprobeRecvfrom() *ebpf.Program {
+	return o.objs.KprobeRecvfrom
+}
+
+// KretprobeRecvfrom returns the kretprobe program for sys_recvfrom.
+func (o *CipherTraceObjects) KretprobeRecvfrom() *ebpf.Program {
+	return o.objs.KretprobeRecvfrom
+}
+
+// KprobeRead returns the kprobe program for sys_read.
+func (o *CipherTraceObjects) KprobeRead() *ebpf.Program {
+	return o.objs.KprobeRead
+}
+
+// KretprobeRead returns the kretprobe program for sys_read.
+func (o *CipherTraceObjects) KretprobeRead() *ebpf.Program {
+	return o.objs.KretprobeRead
 }
 
 // Events returns the perf event map.
